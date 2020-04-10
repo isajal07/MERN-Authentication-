@@ -27,11 +27,14 @@ class Home extends Component {
 
     this.onSignIn = this.onSignIn.bind(this);
     this.onSignUp = this.onSignUp.bind(this);
+    this.onLogOut = this.onLogOut.bind(this);
   }
 
   componentDidMount() {
-    const token = getFromStorage('the_main_app');
-    if(token) {
+    const obj = getFromStorage('the_main_app');
+
+    if(obj && obj.token) {
+      const { token } = obj;
       fetch('/api/account/verfiy?token=' + token)
         .then(res => res.json())
         .then(json => {
@@ -121,7 +124,65 @@ class Home extends Component {
   }
 
   onSignIn() {
+    const {
+      signInEmail,
+      signInPassword
+    } = this.state;
 
+    this.setState({
+      isLoading: true
+    })
+
+    fetch('/api/account/signin', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        email: signInEmail,
+        password: signInPassword
+      })
+    }).then(res => res.json())
+      .then(json => {
+        setInStorage('this_main_app', { token: json.token})
+        if (json.success) {
+          this.setState({
+            signInError: json.message,
+            isLoading: false,
+            token: json.token
+          })
+
+        }
+      })
+  }
+
+  onLogOut() {
+    this.setState({
+      isLoading: true,
+    })
+    const obj = getFromStorage('the_main_app');
+    console.log('C')
+    if(obj && obj.token) {
+      const { token } = obj;
+      fetch('/api/account/logout?token=' + token)
+        .then(res => res.json())
+        .then(json => {
+          if(json.success) {
+            this.setState({
+              token: '',
+              isLoading: false
+            })
+          } else {
+            this.setState({
+              isLoading: false
+            })
+          }
+        })
+    } else {
+     this.setState({
+       isLoading: false
+     }) 
+    }
   }
  
 
@@ -147,7 +208,7 @@ class Home extends Component {
       return (
       <div>
         {
-          (signInError) ? <p>{signInError}</p>: null
+          (signInError) ? <p>{signInError}</p>: <div> Welcome {signUpFirstName}</div>
         }
        <p> SIGN IN! </p>
        <div>
@@ -171,7 +232,8 @@ class Home extends Component {
     }
     return (
       <>
-       
+       <p>Account</p>
+       <button onClick={this.onLogOut}>LOG OUT</button>
       </>
     );
   }
