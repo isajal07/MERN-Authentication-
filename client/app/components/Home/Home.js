@@ -100,9 +100,11 @@ class Home extends Component {
 
     fetch('/api/account/signup', {
       method: 'POST',
-      headers : new Headers(),
+      headers: {
+        'Content-Type': 'application/json'
+      },
       body: JSON.stringify({
-        firstname: signUpFirstName,
+        firstName: signUpFirstName,
         lastName: signUpLastName,
         email: signUpEmail,
         password: signUpPassword
